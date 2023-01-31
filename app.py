@@ -1,10 +1,10 @@
 import string
 import random
 from flask_admin.contrib.sqla import ModelView
-from flask_restful import Api, Resource
+#from flask_restful import Api, Resource
 from flask import Flask, request
 from model_views import (
-    testAdminView, testUserView, MyModelView, usernameview, testView1, samplep, invoice, report
+    testAdminView, MyModelView, usernameview, testView1, samplep, invoice, report
 )
 import forms
 import os
@@ -17,7 +17,7 @@ from flask_security import (Security, SQLAlchemyUserDatastore,
                             )
 from flask_security.utils import encrypt_password
 import flask_admin
-from flask_admin import BaseView
+from flask_admin import BaseView,expose
 from flask_admin import helpers as admin_helpers
 from flask_admin.contrib import sqla
 from datetime import datetime
@@ -126,6 +126,41 @@ def index():
     return redirect("/admin")
 
 
+
+
+
+# creating a class object of testUserView imported from Model_views.pu
+class testUserView(BaseView):
+    
+    def is_accessible(self):
+        if not current_user.is_active or not current_user.is_authenticated:
+            return False
+        if current_user.has_role('superuser') or current_user.has_role('user'):
+            return True
+        return False
+
+    @expose('/', methods=['GET', 'POST'])
+    def index(self):
+            if request.method == 'POST':
+                data=request.form
+                print(data)
+                desc=data['address']
+                current_time = datetime.now()
+                clinic = data['clinicname']
+                location =data['state']
+                breed = data['breed']
+                sample = data['sample']
+                species =data['species']
+                age = data['age']
+                owner = data['username']
+                mobile = data['phno']
+                tests = data['testBox1']
+                testDb = test(desc=desc, date=current_time,Clinic_ReferralName=clinic, Location=location, Breed=breed, Sample=sample, Species=species, Age=age, Owner=owner, Mobile=mobile, Tests=tests)
+                db.session.add(testDb)
+                db.session.commit()
+            return self.render('admin/usertest.html')
+
+
 # --------------------------------
 # CREATE FLASK ADMIN
 # --------------------------------
@@ -166,41 +201,13 @@ admin.add_view(report(name="Report1", category="Report"))
 #
 
 
-
-
-
-def process_data(data,testId):
-    # do something with the data
-    # username = request.form['uname']
-    try:
-        checkTestId = test.query.filter_by(id=testId).first()
-        if (checkTestId != None):
-            generate_id(data)
-        desc=data['address']
-        current_time = datetime.now()
-        clinic = data['clinicname']
-        loaction = data['state']
-        breed = data['breed']
-        sample = data['sample']
-        species = data['species']
-        age = data['age']
-        owner = data['username']
-        mobile = data['phno']
-        tests = data['testBox1']
-        testDb = test(id=testId, desc=desc, date=current_time,
-                      Clinic_ReferralName=clinic, Location=loaction, Breed=breed, Sample=sample, Species=species, Age=age, Owner=owner, Mobile=mobile, Tests=tests)
-        db.session.add(testDb)
-        db.session.commit()
-        return
-    except:
-        return render_template('admin/usertest.html')
-
-
-def generate_id(data):
-    id = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
-    process_data(data, id)
-    return
-#
+##
+##
+##def generate_id(data):
+##    id = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+##    process_data(data, id)
+##    return
+###
 #
 #
 #
@@ -277,10 +284,10 @@ def build_sample_db():
 # --------------------------------
 if __name__ == '__main__':
     # Build a sample db on the fly, if one does not exist yet.
-##    db.create_all()
-##    app_dir = os.path.realpath(os.path.dirname(__file__))
-##    database_path = os.path.join(app_dir, app.config['DATABASE_FILE'])
-##    if not os.path.exists(database_path):
-##        build_sample_db()
+    # db.create_all()
+    ##    app_dir = os.path.realpath(os.path.dirname(__file__))
+    ##    database_path = os.path.join(app_dir, app.config['DATABASE_FILE'])
+    # if not os.path.exists(database_path):
+    # build_sample_db()
 
     app.run()
